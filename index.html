@@ -20,7 +20,7 @@
             <div class="d-flex" role="search">
                 <input id="searchInp" class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
                 <button id="searchBtn" class="btn btn-outline-success me-2" type="submit" onclick="onSearch()">Search</button>
-                
+                <button id="CancelBtn" class="btn btn-outline-danger" type="submit" onclick="onClear()">Clear</button>
             </div>
             </div>
         </div>
@@ -37,19 +37,13 @@
 <section class="container">
     <h1 class="text-center">Cakes Collections</h1>
     <div class="row gap-5 d-flex justify-content-evenly" id="mainContainer">
-        <!-- <div class="card" style="width: 18rem;">
-            <img src="..." class="card-img-top" alt="...">
-            <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-            </div>
-        </div> -->
+
     </div>
 </section>
 </body>
 <script>
     let globalCakes = null;
+    CancelBtn.style.display = "none";
     const getData = async () => {
         try {
             let result = await fetch("https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert");
@@ -114,12 +108,41 @@
 
         let updatedFav = parsedFav.filter((cake) => cake.id !== id);
 
-        localStorage.setItem("favCakes", JSON.stringify(updatedFav));
+        if (updatedFav.length === 0) {
+            localStorage.removeItem("favCakes");
+        } else {
+            localStorage.setItem("favCakes", JSON.stringify(updatedFav));
+        }
+
         getData();
     };
 
+    const onSearch = () => {
+        let cakesToFind = searchInp.value;
+        let output =  globalCakes.filter((eachCake) => eachCake.strMeal.includes(cakesToFind));
+        // console.log(output);
+        mainContainer.innerHTML = "";
+        output.forEach((eachCake) => {
+            mainContainer.innerHTML += `
+                <div class="card col-5" style="width: 18rem;">
+                    <img src="${eachCake.strMealThumb}" class="card-img-top">
+                    <div class="card-body">
+                        <h5 class="card-title">${eachCake.strMeal}</h5>
+                        <button class="btn btn-primary"
+                            onclick="addFav('${eachCake.idMeal}','${eachCake.strMeal}','${eachCake.strMealThumb}')">
+                            Add to Favorites
+                        </button>
+                    </div>
+                </div>`
+        })
 
+        CancelBtn.style.display = "inline";
+    }
 
-
+    const onClear = () =>{
+        CancelBtn.style.display = "none";
+        searchInp.value = "";
+        getData();
+    }
 </script>
 </html>
